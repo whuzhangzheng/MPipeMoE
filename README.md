@@ -20,7 +20,6 @@ MOE_FFN: nn.Module = layer.PipeMoE(
         moe_group=dist.distributed_c10d._get_default_group(),
         num_experts=num_experts,
         k=top_k,
-        name=f"layer1",
-        args=args)
+        name=f"layer1")
 ```
 
