@@ -43,7 +43,7 @@ if __name__ == '__main__':
         author=', '.join(authors),
         author_email='zzhang3031@whu.edu.cn',
         license='Apache-2',
-        url='https://github.com/laekov/fastmoe',
+        url='https://github.com/whuzhangzheng/MPipeMoE',
         packages=['pipemoe'],
         ext_modules=[
             CUDAExtension(
