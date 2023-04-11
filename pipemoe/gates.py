@@ -15,7 +15,7 @@ class Gate(nn.Module):
                 #  args,
                  k: int = 2,
                  capacity_factor: float = 1.0,
-                 min_capacity: int = 4,
+                #  min_capacity: int = 4,
                  fix_capacity=True) -> None:
         super(Gate, self).__init__()
         # torch.manual_seed(1)
@@ -23,7 +23,7 @@ class Gate(nn.Module):
         self.k = k
         self.num_experts = num_experts
         self.capacity_factor = capacity_factor
-        self.min_capacity = min_capacity
+        # self.min_capacity = min_capacity
         self.wall_clock_breakdown = False
         
         self.num_split = int(os.environ.get("num_split", "2"))
@@ -45,8 +45,8 @@ class Gate(nn.Module):
     def set_capacity(self, num_tokens):
         # print(self.num_experts)
         self.capacity = int(self.capacity_factor * num_tokens / self.num_experts)
-        if self.min_capacity >0 :
-            self.capacity = max(self.min_capacity, self.capacity)
+        # if self.min_capacity >0 :
+        #     self.capacity = max(self.min_capacity, self.capacity)
 
     def forward(self, input: torch.Tensor, normalize_weights=False):
         self.num_tokens = input.shape[0]
@@ -89,7 +89,8 @@ class Gate(nn.Module):
 
         return inversed_indices
 
-
+    def update_indices(self, indices):
+        self.indices = indices
 
 def loss_compute(logits, used_token: torch.Tensor = None, noisy_gate_policy: Optional[str] = None):
     """
@@ -155,6 +156,19 @@ def compute_weight_and_sort_indices_softmove(gates, k, normalize=False):
         weights = F.softmax(weights, dim=-1)
     return weights, indices,  expert_ids
 
+# def compute_weight_and_sort_indices_capacity(gates, k=1, normalize=False):
+#     num_tokens = int(gates.shape[0])
+#     num_experts = int(gates.shape[1])
+#     gates = gates.detach()
+#     values, topk_indices = torch.topk(gates, k=k, dim=1) # indices： expert idx in #(num_tokens, topk)
+#     weights = values
+#     expert_ids, order_indices = topk_indices.reshape(-1).sort() # tokens_indices: for restoring original orider
+#     indices = (torch.ones_like(values, dtype=torch.long) * torch.arange(num_tokens, device=gates.device).unsqueeze(1)).reshape(-1)[order_indices] 
+#     # weights = torch.zeros(num_experts * capacity, device=gates.device, dtype=values.dtype, requires_grad=False)
+#     # weights[indices.reshape(-1)] = values.reshape(-1)    
+#     if normalize:
+#         weights = F.softmax(weights, dim=-1)
+#     return weights, indices,  expert_ids
 
 def inverse_indices(indices):
     v, inv_indices= indices.sort()

@@ -1,8 +1,41 @@
+'''
+Copyright 2020 The Microsoft DeepSpeed Team
+'''
 
 import torch
 import copy
 import math
 from torch import nn
+
+class Experts(torch.nn.Module):
+    def __init__(self, expert, num_local_experts=1):
+        super(Experts, self).__init__()
+        
+        self.deepspeed_experts = torch.nn.ModuleList(
+            [copy.deepcopy(expert) for i in range(num_local_experts)])
+        self.num_local_experts = num_local_experts
+
+        # TODO: revisit allreduce for moe.gate...
+        for expert in self.deepspeed_experts:
+            # TODO: Create param groups to handle expert + data case (e.g. param.group = moe_group)
+            for name, param in expert.named_parameters():
+                param.allreduce = False
+
+        for i in range(num_local_experts):
+            for param in self.deepspeed_experts[i].parameters():
+                param.data = torch.ones_like(param.data) * (i+1)
+
+    def forward(self, inputs):
+        chunks = inputs.chunk(self.num_local_experts, dim=1)
+        expert_outputs = []
+        for chunk, expert in zip(chunks, self.deepspeed_experts):
+            out = expert(chunk)
+            if type(out) is tuple:
+                out = out[0]  # Ignore the bias term for now
+            expert_outputs += [out]
+
+        expert_output = torch.cat(expert_outputs, dim=1)
+        return expert_output
 
 class SeqExperts(torch.nn.Module):
     def __init__(self, num_local_experts, d_model=1024, d_hidden=4096):
@@ -61,3 +94,17 @@ class ConExperts(torch.nn.Module):
         # https://github.com/pytorch/pytorch/blob/master/torch/nn/modules/linear.py#L88
         torch.nn.init.kaiming_uniform_(self.weight1, a=math.sqrt(5))
         torch.nn.init.kaiming_uniform_(self.weight2, a=math.sqrt(5))
+
+
+    # def forward(self, inputs):
+    #     chunks = inputs.chunk(self.num_local_experts, dim=1)
+    #     expert_outputs = []
+    #     for chunk, expert in zip(chunks, self.deepspeed_experts):
+    #         out = expert(chunk)
+    #         if type(out) is tuple:
+    #             out = out[0]  # Ignore the bias term for now
+    #         expert_outputs += [out]
+
+    #     expert_output = torch.cat(expert_outputs, dim=1)
+    #     return expert_output
+

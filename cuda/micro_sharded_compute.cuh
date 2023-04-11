@@ -52,7 +52,7 @@ void pmoe_cuda_micro_forward_sharded_impl(
     int n_per_node_split1 = n_per_split1 / world_size;
     int n_per_node_split2 = n_per_split2 / world_size;
 
-    const scalar_t alpha = 1, beta = 0;
+    // const scalar_t alpha = 1, beta = 0;
     
     int dl_dispatched_input = dispatched_input_buf2? 2:1 ;
     int dl_middle = middle_buf2? 2:1 ;
@@ -70,7 +70,7 @@ void pmoe_cuda_micro_forward_sharded_impl(
     weight1 = experts_params[0].data_ptr<scalar_t>();
     weight2 = experts_params[1].data_ptr<scalar_t>();
 
-    ncclComm_t ncclcomm2 = smgr->ncclcomm2; //? smgr->ncclcomm2 : smgr->ncclcomm;
+    // ncclComm_t ncclcomm2 = smgr->ncclcomm2; //? smgr->ncclcomm2 : smgr->ncclcomm;
 
 
     scalar_t *dispatched_input_buf, *middle_buf, *dispatched_output_buf;
@@ -259,13 +259,13 @@ void pmoe_cuda_micro_backward_sharded_impl(
     int n_per_node_split1 = n_per_split1 / world_size;
     int n_per_node_split2 = n_per_split2 / world_size;
 
-    const scalar_t alpha = 1, beta = 0;
-    const scalar_t beta2 = 1;
+    // const scalar_t alpha = 1, beta = 0;
+    // const scalar_t beta2 = 1;
     
     // int rank_in_group = rank % n_gran;
     // int group_rank = rank / n_gran;
 
-    ncclComm_t ncclcomm2 = smgr->ncclcomm2; //? smgr->ncclcomm2 : smgr->ncclcomm;
+    // ncclComm_t ncclcomm2 = smgr->ncclcomm2; //? smgr->ncclcomm2 : smgr->ncclcomm;
 
     
     scalar_t *grad_dispatched_input_buf;

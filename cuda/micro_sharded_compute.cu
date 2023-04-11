@@ -11,6 +11,7 @@
 torch::Tensor _micro_forward_sharded(
         torch::Tensor &inputs,
         std::vector<torch::Tensor> &experts_params,
+        std::vector<int> recv_counts,std::vector<int> send_counts, 
         int d_model, int d_hidden, 
         int num_local_expert,
         int num_token, 
@@ -124,6 +125,7 @@ std::vector<torch::Tensor> _micro_backward_sharded(
         torch::Tensor &grad_outs,
         torch::Tensor &inputs,
         std::vector<torch::Tensor> &experts_params,
+        std::vector<int> recv_counts,std::vector<int> send_counts, 
         int d_model, int d_hidden, 
         int num_local_expert,
         int num_token, 
