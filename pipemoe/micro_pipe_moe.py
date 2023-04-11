@@ -439,7 +439,7 @@ class MicroBatchPipeMOELayer(Base):
             self.gate.update_indices(sort_indices)
             
             self.timer("main_forward", start=True)
-            combined_out = _DIST_MICRO_SHARDED_FUNC.apply(inp, self.experts, self.num_local_experts, recv_counts, send_counts, self.d_hidden, self.name, self.num_split, self.inplace, self.core_op)
+            combined_out = _DIST_MICRO_SHARDED_FUNC.apply(inp, self.experts, recv_counts, send_counts, self.num_local_experts, self.d_hidden, self.name, self.num_split, self.inplace, self.core_op)
             self.timer("main_forward", start=False)
             
             # if not self.fix_capacity:
@@ -508,7 +508,7 @@ class _DIST_MICRO_SHARDED_FUNC(torch.autograd.Function):
         return combined_out
     @staticmethod
     def backward(ctx: Any, *grad_output: Tensor):
-        expert_params, inp, d_model, d_hidden, num_local_experts, num_token, name, num_split, inplace, core_op = ctx.saved_for_backward
+        expert_params, inp, recv_counts, send_counts, d_model, d_hidden, num_local_experts, num_token, name, num_split, inplace, core_op = ctx.saved_for_backward
         (grad_in,)  = pipemoe_cuda.micro_backward_sharded(grad_output[0], inp, expert_params, recv_counts, send_counts, d_model, d_hidden, num_local_experts, num_token, name, num_split, inplace, core_op)
         return grad_in, None, None, None, None, None, None, None, None, None
   
